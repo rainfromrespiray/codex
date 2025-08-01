@@ -322,3 +322,80 @@ add_filter(
 );
 
 // End of snippet1.php
+
+// -----------------------------------------------------------------------------
+// 10) Preload FunnelKit and WooCommerce styles dynamically on nf‑test
+//
+// In addition to preloading our theme fonts and base CSS, we also want to
+// warm up the network connections for the large style sheets used on the
+// checkout page.  These include FunnelKit’s core styles (`wfacp-style`,
+// `wfacp-form-default`, `wfacp-form`) and WooCommerce’s layout sheets.  We
+// don’t hardcode their paths because plugin updates may change filenames;
+// instead we look up the registered styles and emit `<link rel="preload">`
+// tags for each one.  This runs early in the head so downloads start
+// immediately when the user lands on `/nf-test`.
+add_action( 'wp_head', function () {
+    if ( ! is_page( 'nf-test' ) ) {
+        return;
+    }
+    global $wp_styles;
+    // Handles to preload.  Adjust this list if new styles are added or removed.
+    $preload_styles = array(
+        'wfacp-style', 'wfacp-form-default', 'wfacp-form',
+        'woocommerce-layout', 'woocommerce-general', 'woocommerce-smallscreen',
+        'wfob', 'wfob-bump-wrapper',
+    );
+    foreach ( $preload_styles as $handle ) {
+        if ( isset( $wp_styles->registered[ $handle ] ) ) {
+            $src = $wp_styles->registered[ $handle ]->src;
+            if ( ! empty( $src ) ) {
+                echo '<link rel="preload" href="' . esc_url( $src ) . '" as="style">' . "\n";
+            }
+        }
+    }
+}, 15 );
+
+// -----------------------------------------------------------------------------
+// 11) Defer additional heavy scripts on the custom checkout
+//
+// The checkout page still loads many large JS files that block the HTML
+// parser.  Most of these scripts (WooCommerce checkout, country selectors,
+// FunnelKit logic, Stripe integrations and even Elementor) can be deferred
+// without impacting the first paint because they initialise after the DOM
+// has been constructed.  This filter runs for each script tag on `/checkouts/nf`.
+// It also defers any script that originates from known analytics domains.
+add_filter( 'script_loader_tag', function ( $tag, $handle, $src ) {
+    // Apply only on the custom checkout page
+    if ( false === strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' ) ) {
+        return $tag;
+    }
+    // List of WordPress handles to defer.  Scripts will still execute in order.
+    $defer_handles = array(
+        'woocommerce', 'wc-cart-fragments', 'wc-checkout',
+        'wc-country-select', 'wc-address-i18n', 'wc-eu-vat', 'wc-password-strength-meter',
+        'wfacp_checkout_js', 'wfacp-smart-buttons', 'wfacp-intlTelInput-js',
+        'fkwcs-stripe-external', 'fkwcs-stripe-js',
+        'wfob', 'wfob-bump-wrapper',
+        'elementor-frontend', 'elementor-accordion', 'elementor-waypoints',
+    );
+    if ( in_array( $handle, $defer_handles, true ) ) {
+        return str_replace( '<script ', '<script defer ', $tag );
+    }
+    // Domain-based deferral for external analytics and social scripts
+    $defer_domains = array(
+        'connect.facebook.net',
+        'snap.licdn.com',
+        'px.ads.linkedin.com',
+        'widget.trustpilot.com',
+        'www.googletagmanager.com',
+        'js.stripe.com',
+        'unpkg.com',
+        'stats.wp.com',
+    );
+    foreach ( $defer_domains as $domain ) {
+        if ( false !== strpos( $src, $domain ) ) {
+            return str_replace( '<script ', '<script defer ', $tag );
+        }
+    }
+    return $tag;
+}, 15, 3 );
