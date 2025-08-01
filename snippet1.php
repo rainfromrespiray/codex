@@ -243,6 +243,23 @@ add_filter(
         if ( ! is_page( 'nf-test' ) ) {
             return $hints;
         }
+        // Add DNS-prefetch hints for third‑party domains on the landing page.  These
+        // hints instruct the browser to resolve hostnames early without opening
+        // connections, which reduces lookup latency when the resources are later
+        // requested on the checkout page.
+        if ( 'dns-prefetch' === $relation_type ) {
+            $hints[] = 'https://fonts.googleapis.com';
+            $hints[] = 'https://fonts.gstatic.com';
+            $hints[] = 'https://api.stripe.com';
+            $hints[] = 'https://js.stripe.com';
+            $hints[] = 'https://cdnjs.cloudflare.com';
+            $hints[] = 'https://snap.licdn.com';
+            $hints[] = 'https://px.ads.linkedin.com';
+            $hints[] = 'https://connect.facebook.net';
+            $hints[] = 'https://widget.trustpilot.com';
+            $hints[] = 'https://unpkg.com';
+            $hints[] = 'https://stats.wp.com';
+        }
         if ( 'preconnect' === $relation_type ) {
             // Preconnect to all third‑party hosts used during checkout.  This
             // includes fonts, Stripe, CDNJS, LinkedIn, Facebook, Trustpilot and
@@ -272,6 +289,26 @@ add_filter(
     10,
     2
 );
+
+// -----------------------------------------------------------------------------
+// 6a) Prewarm the custom checkout
+//
+// On the landing page we fire off a non‑blocking HEAD request to the checkout
+// page.  This warms up the server caches (database queries, PHP opcache,
+// template compilation) so that when the real redirect happens the response
+// arrives faster.  The request is tiny (HEAD) and does not cache the
+// resulting HTML on the client, thus avoiding the caching issues mentioned
+// in the README.  We set a very short timeout and mark it as non‑blocking
+// so that it never delays rendering of the landing page.
+add_action( 'wp_head', function () {
+    if ( ! is_page( 'nf-test' ) ) {
+        return;
+    }
+    $url = site_url( '/checkouts/nf/?prewarm=1' );
+    // Perform a HEAD request with no blocking.  Errors are ignored.
+    $args = array( 'timeout' => 0.01, 'blocking' => false );
+    wp_remote_head( $url, $args );
+}, 1 );
 
 // -----------------------------------------------------------------------------
 // 7) Preload critical fonts and checkout CSS on the landing page
