@@ -140,6 +140,16 @@ function respiray_minimal_assets() {
         wp_dequeue_script( 'wfacp-smart-buttons' );
         wp_dequeue_script( 'wfacp_checkout_js' );
         wp_dequeue_style( 'wfacp-styles' ); // only if added by your theme
+
+        // Remove heavy global libraries not needed on the landing page.  These
+        // scripts/styles (Swiper, Modernizr, Conditionizr) are enqueued by the
+        // theme in functions.php but are not required for the simple buy box
+        // experience.  Removing them eliminates additional downloads from
+        // unpkg.com and other CDNs.
+        wp_dequeue_script( 'swiper' );
+        wp_dequeue_style( 'swipercss' );
+        wp_dequeue_script( 'modernizr' );
+        wp_dequeue_script( 'conditionizr' );
     }
     // Only continue asset stripping on the real checkout.  If we’re on
     // another page (including nf‑test), bail out here.
@@ -291,25 +301,6 @@ add_filter(
 );
 
 // -----------------------------------------------------------------------------
-// 6a) Prewarm the custom checkout
-//
-// On the landing page we fire off a non‑blocking HEAD request to the checkout
-// page.  This warms up the server caches (database queries, PHP opcache,
-// template compilation) so that when the real redirect happens the response
-// arrives faster.  The request is tiny (HEAD) and does not cache the
-// resulting HTML on the client, thus avoiding the caching issues mentioned
-// in the README.  We set a very short timeout and mark it as non‑blocking
-// so that it never delays rendering of the landing page.
-add_action( 'wp_head', function () {
-    if ( ! is_page( 'nf-test' ) ) {
-        return;
-    }
-    $url = site_url( '/checkouts/nf/?prewarm=1' );
-    // Perform a HEAD request with no blocking.  Errors are ignored.
-    $args = array( 'timeout' => 0.01, 'blocking' => false );
-    wp_remote_head( $url, $args );
-}, 1 );
-
 // -----------------------------------------------------------------------------
 // 7) Preload critical fonts and checkout CSS on the landing page
 //
