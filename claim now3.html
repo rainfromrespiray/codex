@@ -1,0 +1,355 @@
+<!-- Triple Pack Offer with Updated Spinner UX -->
+
+<!-- CSS Styles - Self-contained within this widget -->
+<style>
+.tab-button-custom {
+  line-height: 1.4;
+}
+.product-tabs-nav {
+  display: flex;
+  margin: 0 -33px 10px -33px;
+  border: none;
+}
+.tab-button-custom {
+  flex: 1;
+  background: #F2F2F2;
+  border: none;
+  padding: 2px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  color: #333;
+  font-weight: normal;
+  transition: all 0.2s ease;
+  position: relative;
+  border-right: 1px solid #fff;
+}
+.tab-button-custom:last-child {
+  border-right: none;
+}
+.tab-button-custom.active-tab {
+  background-color: #D6EFFF;
+  color: #333;
+  font-weight: normal;
+}
+.tab-button-custom[data-tab="product1"].active-tab {
+  border-top: 1px solid #199ACE;
+  border-right: 1px solid #199ACE;
+  border-bottom: 1px solid #199ACE;
+  border-left: none;
+}
+.tab-button-custom[data-tab="product2"].active-tab {
+  border: 1px solid #199ACE;
+}
+.tab-button-custom[data-tab="product3"].active-tab {
+  border-top: 1px solid #199ACE;
+  border-left: 1px solid #199ACE;
+  border-bottom: 1px solid #199ACE;
+  border-right: none;
+}
+.tp-selector-container {
+  text-align: center;
+  padding: 0px 0;
+  margin-bottom: 10px;
+}
+.tp-choose-color {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.tp-circles {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0px;
+}
+.tp-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.tp-black {
+  background-color: black;
+  border: 2px solid white;
+  outline: 1px solid #ccc;
+  margin-right: 20px;
+}
+.tp-white {
+  background-color: white;
+  border: 1px solid #ccc;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tp-white .inner-circle {
+  width: 29px;
+  height: 29px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  position: absolute;
+}
+.tp-black.tp-selected {
+  outline: 1px solid #199ACE;
+}
+.tp-white.tp-selected:before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border: 1px solid #199ACE;
+  border-radius: 50%;
+  z-index: 1;
+}
+.tp-black.tp-selected:before {
+  display: none;
+}
+.tp-black.tp-selected:after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #199ACE;
+  border-radius: 50%;
+  top: -3px;
+  right: -3px;
+  z-index: 2;
+}
+.tp-white.tp-selected .selection-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #199ACE;
+  border-radius: 50%;
+  top: -1px;
+  right: -1px;
+  z-index: 2;
+}
+.tp-labels {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 5px;
+}
+.tp-label {
+  width: 35px;
+  font-size: 12px;
+  color: black;
+  text-align: center;
+}
+.tp-label-black {
+  margin-right: 20px;
+}
+.tp-tab-content {
+  display: none;
+}
+.tp-tab-content.active {
+  display: block;
+}
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(242, 34, 34, 0.6); }
+  50% { box-shadow: 0 0 15px rgba(242, 34, 34, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(242, 34, 34, 0.6); }
+}
+.add-to-cart-ajax.triple_pack {
+  background: #F22222;
+  color: white;
+  border: none;
+  width: 100%;
+  height: auto;
+  border-radius: 30px;
+  font-family: "Retail Font", Arial, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  padding: 10px;
+  animation: glow 1.5s infinite;
+  cursor: pointer;
+  margin: 5px 0 15px;
+  text-transform: none;
+}
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 10px;
+  vertical-align: text-bottom;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.triple-product-image-container {
+  position: relative;
+  margin-bottom: 15px;
+  width: 100%;
+  text-align: center;
+}
+.triple_pack_img {
+  display: none;
+  max-width: 100%;
+  height: auto;
+}
+</style>
+
+<!-- Tabs -->
+<div class="product-tabs-nav">
+  <button class="tab-button-custom active-tab" data-tab="product1">Device 1<br>color</button>
+  <button class="tab-button-custom" data-tab="product2">Device 2<br>color</button>
+  <button class="tab-button-custom" data-tab="product3">Device 3<br>color</button>
+</div>
+
+<!-- Color Selection Panels -->
+<div class="tp-tabs-content">
+  <div class="tp-tab-content active" id="product1">
+    <div class="tp-selector-container">
+      <div class="tp-choose-color">
+        <div class="tp-circles">
+          <div class="tp-circle tp-black tp-selected" id="tp_p1_black"></div>
+          <div class="tp-circle tp-white" id="tp_p1_white">
+            <div class="inner-circle"></div>
+            <div class="selection-dot"></div>
+          </div>
+        </div>
+        <div class="tp-labels">
+          <span class="tp-label tp-label-black">Black</span>
+          <span class="tp-label tp-label-white">White</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tp-tab-content" id="product2">
+    <div class="tp-selector-container">
+      <div class="tp-choose-color">
+        <div class="tp-circles">
+          <div class="tp-circle tp-black tp-selected" id="tp_p2_black"></div>
+          <div class="tp-circle tp-white" id="tp_p2_white">
+            <div class="inner-circle"></div>
+            <div class="selection-dot"></div>
+          </div>
+        </div>
+        <div class="tp-labels">
+          <span class="tp-label tp-label-black">Black</span>
+          <span class="tp-label tp-label-white">White</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tp-tab-content" id="product3">
+    <div class="tp-selector-container">
+      <div class="tp-choose-color">
+        <div class="tp-circles">
+          <div class="tp-circle tp-black tp-selected" id="tp_p3_black"></div>
+          <div class="tp-circle tp-white" id="tp_p3_white">
+            <div class="inner-circle"></div>
+            <div class="selection-dot"></div>
+          </div>
+        </div>
+        <div class="tp-labels">
+          <span class="tp-label tp-label-black">Black</span>
+          <span class="tp-label tp-label-white">White</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Claim Button -->
+<button id="triple-pack-btn" class="add-to-cart-ajax triple_pack">Claim now</button>
+
+<script>
+jQuery(function($){
+  // color‐state
+  var productColors = { p1:'black', p2:'black', p3:'black' };
+
+  // tabs
+  $('.tab-button-custom').click(function(){
+    $('.tab-button-custom').removeClass('active-tab');
+    $(this).addClass('active-tab');
+    $('.tp-tab-content').removeClass('active');
+    $('#' + $(this).data('tab')).addClass('active');
+  });
+
+  // pickers
+  $('#tp_p1_black,#tp_p1_white').click(function(){
+    $('#tp_p1_black,#tp_p1_white').removeClass('tp-selected');
+    $(this).addClass('tp-selected');
+    productColors.p1 = $(this).hasClass('tp-white')?'white':'black';
+    updateImage();
+  });
+  $('#tp_p2_black,#tp_p2_white').click(function(){
+    $('#tp_p2_black,#tp_p2_white').removeClass('tp-selected');
+    $(this).addClass('tp-selected');
+    productColors.p2 = $(this).hasClass('tp-white')?'white':'black';
+    updateImage();
+  });
+  $('#tp_p3_black,#tp_p3_white').click(function(){
+    $('#tp_p3_black,#tp_p3_white').removeClass('tp-selected');
+    $(this).addClass('tp-selected');
+    productColors.p3 = $(this).hasClass('tp-white')?'white':'black';
+    updateImage();
+  });
+
+  function updateImage(){
+    var combo = productColors.p1+'_'+productColors.p2+'_'+productColors.p3;
+    $('.triple_pack_img').hide();
+    $('#triple_'+combo).show();
+  }
+  updateImage();
+
+  // spinner helpers
+  function showSpinner($btn){
+    const msgs=['Loading','Hang tight','Almost there'], L=msgs.length;
+    let i=0;
+    $btn.addClass('loading').prop('disabled',true)
+        .html('<span class="status-text">'+msgs[0]+'</span><span class="loading-spinner"></span>');
+    var iv = setInterval(function(){
+      i=(i+1)%L;
+      $btn.find('.status-text').text(msgs[i]);
+    },2500);
+    $btn.data('spinner-iv', iv);
+  }
+  function hideSpinner($btn){
+    clearInterval($btn.data('spinner-iv'));
+    $btn.removeClass('loading').prop('disabled',false)
+        .html('<span class="status-text">Claim now</span>');
+  }
+
+  // bind & override
+  $('#triple-pack-btn')
+    .off('click')
+    .on('click', function(e){
+      e.preventDefault(); e.stopImmediatePropagation();
+      var $btn=$(this);
+      showSpinner($btn);
+      var combo = productColors.p1[0]+productColors.p2[0]+productColors.p3[0];
+
+      fetch(window.location.origin + '/wp-json/nf/v1/bundle', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({combo})
+      })
+      .then(r=>{ if(!r.ok) throw 'Status '+r.status; return r.json(); })
+      .then(json=>{
+        if(json.success){
+          window.location.href = '/checkouts/nf/';
+        } else throw 'bundle error';
+      })
+      .catch(err=>{
+        console.error(err);
+        alert('Something went wrong. Please refresh and try again.');
+        hideSpinner($btn);
+      });
+    });
+});
+</script>
