@@ -120,7 +120,7 @@ If you wish to recommend WordPress plugins for diagnostics or performance, menti
 - **Use the HAR file referenced in your task instructions or ticket. If none is provided, abort your task and ask which HAR file should be analyzed before continuing.**
 - **Limitation:** The PDF may not include all network/request details present in the HAR. Always analyze the `.har` file first whenever possible.
 - **Special Note:**
-  - `respiray.com_nf-test0.har` (and PDF version) represents a baseline test where `snippet1.php` is disabled.  
+  - `respiray.com_nf-test1.har` (and PDF version) represents a baseline test.  
     This version serves as a control for comparing the impact of any optimizations.
 
 ---
@@ -133,6 +133,29 @@ If you wish to recommend WordPress plugins for diagnostics or performance, menti
 4. Never break the mini cart or cause visual/layout changes.
 5. Test, document, and submit changes with clear reasoning and what was tried/changed in the code and/or a change log.
 6. Await new HAR upload and iterate as needed.
+
+✅ File Review Checklist (to be completed before each attempt)
+Before making any changes or submitting code, you must confirm the following for every optimization attempt:
+
+ I have read and understood the current version of claim now1.html (<version or last modified date>)
+
+ I have read and understood the current version of claim now2.html (<version or last modified date>)
+
+ I have read and understood the current version of claim now3.html (<version or last modified date>)
+
+ I have read and understood the current version of Offer1.js (<version or last modified date>)
+
+ I have read and understood the current version of checkout_source.html (<version or last modified date>)
+
+ I have read and understood the current version of snippet1.php (<version or last modified date>)
+
+ I have read and understood the current version of functions.php (<version or last modified date>)
+
+ I have analyzed the latest HAR file (<filename>, <timestamp>)
+
+ (If applicable) I have reviewed the latest PDF fallback file (<filename>)
+
+If any file is missing, unclear, or outdated, STOP and request clarification or an updated file before proceeding.
 
 ---
 
@@ -157,8 +180,6 @@ If you wish to recommend WordPress plugins for diagnostics or performance, menti
 | functions.php               | Reference for hooks and WP logic                                |
 | respiray.com_nf-testN.har   | HAR file – network waterfall for version N (use for analysis)   |
 | respiray.com_nf-testN.pdf   | PDF version of HAR – only if HAR is too large to analyze        |
-| respiray.com_nf-test0.har   | Baseline HAR with snippet1.php disabled (for control comparison)|
-| respiray.com_nf-test0.pdf   | PDF baseline (if HAR is too large)                              |
 
 ---
 
@@ -171,4 +192,7 @@ If you wish to recommend WordPress plugins for diagnostics or performance, menti
   Never cache `/checkouts/nf`—doing so breaks dynamic cart/upsell logic.
 
 For any uncertainty about requirements, file purpose, or optimization safety, seek clarification before proceeding.  
+
+You must include the above File Review Checklist with your output. Do not submit any code changes unless every file above has been checked and the version/date is noted. If a file is missing or unclear, pause your work and request clarification.
+
 **Adherence to this README is mandatory.**
