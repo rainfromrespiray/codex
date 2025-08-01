@@ -244,12 +244,27 @@ add_filter(
             return $hints;
         }
         if ( 'preconnect' === $relation_type ) {
+            // Preconnect to all third‑party hosts used during checkout.  This
+            // includes fonts, Stripe, CDNJS, LinkedIn, Facebook, Trustpilot and
+            // other analytics domains so their DNS/TLS handshakes occur early.
             $hints[] = 'https://fonts.googleapis.com';
             $hints[] = 'https://fonts.gstatic.com';
             $hints[] = 'https://api.stripe.com';
+            $hints[] = 'https://js.stripe.com';
             $hints[] = 'https://cdnjs.cloudflare.com';
+            $hints[] = 'https://snap.licdn.com';
+            $hints[] = 'https://px.ads.linkedin.com';
+            $hints[] = 'https://connect.facebook.net';
+            $hints[] = 'https://widget.trustpilot.com';
+            $hints[] = 'https://unpkg.com';
+            $hints[] = 'https://stats.wp.com';
         }
         if ( 'prefetch' === $relation_type ) {
+            // Prefetch and prerender the checkout page itself to get the HTML
+            // shell and open a connection before the user clicks.
+            $hints[] = site_url( '/checkouts/nf/' );
+        }
+        if ( 'prerender' === $relation_type ) {
             $hints[] = site_url( '/checkouts/nf/' );
         }
         return $hints;
@@ -356,6 +371,36 @@ add_action( 'wp_head', function () {
 }, 15 );
 
 // -----------------------------------------------------------------------------
+// 12) Preload critical JavaScript on nf‑test
+//
+// FunnelKit and WooCommerce scripts are large and block parsing on the
+// checkout page.  To hide latency, we start downloading them while the
+// visitor is still on `/nf-test`.  Like the CSS preloads above, we look up
+// the registered script handles and emit preload hints for their sources.
+add_action( 'wp_head', function () {
+    if ( ! is_page( 'nf-test' ) ) {
+        return;
+    }
+    global $wp_scripts;
+    $preload_scripts = array(
+        'woocommerce', 'wc-cart-fragments', 'wc-checkout',
+        'wc-country-select', 'wc-address-i18n', 'wc-eu-vat', 'wc-password-strength-meter',
+        'wfacp_checkout_js', 'wfacp-smart-buttons', 'wfacp-intlTelInput-js',
+        'fkwcs-stripe-external', 'fkwcs-stripe-js',
+        'wfob', 'wfob-bump-wrapper',
+    );
+    foreach ( $preload_scripts as $handle ) {
+        if ( isset( $wp_scripts->registered[ $handle ] ) ) {
+            $src = $wp_scripts->registered[ $handle ]->src;
+            if ( ! empty( $src ) ) {
+                // Use as="script" to hint that this is a JavaScript resource.
+                echo '<link rel="preload" href="' . esc_url( $src ) . '" as="script">' . "\n";
+            }
+        }
+    }
+}, 15 );
+
+// -----------------------------------------------------------------------------
 // 11) Defer additional heavy scripts on the custom checkout
 //
 // The checkout page still loads many large JS files that block the HTML
@@ -399,3 +444,29 @@ add_filter( 'script_loader_tag', function ( $tag, $handle, $src ) {
     }
     return $tag;
 }, 15, 3 );
+
+// -----------------------------------------------------------------------------
+// 13) Remove marketing/analytics scripts on the checkout
+//
+// The checkout should prioritise loading the form, mini cart and upsells.  Most
+// tracking libraries can safely be delayed until after conversion.  Here we
+// dequeue common tracking scripts so they don’t even download on
+// `/checkouts/nf/`.  If you need a particular tracker for analytics, consider
+// moving it to the footer via your theme instead of blocking above‑the‑fold.
+add_action( 'wp_enqueue_scripts', function () {
+    if ( false === strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' ) ) {
+        return;
+    }
+    $tracking_handles = array(
+        'gtm4wp_datalayer',
+        'pys-js',
+        'wpca_remarketing',
+        'analytics',
+        'google-tag-manager',
+        'fb_pixel',
+        'tiktok-pixel',
+    );
+    foreach ( $tracking_handles as $h ) {
+        wp_dequeue_script( $h );
+    }
+}, 30 );
