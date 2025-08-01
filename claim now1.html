@@ -1,0 +1,177 @@
+<!-- Single Product with Full-Width Light Blue Tab -->
+
+<!-- Product Tab Navigation (Full-width light blue) -->
+<div class="single-product-tab-nav" style="display: flex; justify-content: center; margin: 0 -33px 10px -33px; background-color: #D6EFFF; border-top: 1px solid #199ACE; border-bottom: 1px solid #199ACE;">
+  <button class="single-tab-button active-tab" style="flex: 1; background: transparent; border: none; padding: 2px; font-size: 14px; cursor: pointer; text-align: center; color: #333; font-weight: normal;">Device<br>color</button>
+</div>
+
+<!-- CSS Styles - Self-contained within this widget -->
+<style>
+.single-tab-button {
+  line-height: 1.4;
+}
+.sp-selector-container {
+  text-align: center;
+  padding: 0px 0;
+  margin-bottom: 0px;
+}
+.sp-choose-color {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.sp-circles {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0px;
+}
+.sp-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.sp-black {
+  background-color: black;
+  border: 2px solid white;
+  outline: 1px solid #ccc;
+  margin-right: 20px;
+}
+.sp-white {
+  background-color: white;
+  border: 1px solid #ccc;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.sp-white .inner-circle {
+  width: 29px;
+  height: 29px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  position: absolute;
+}
+.sp-black.sp-selected {
+  outline: 1px solid #199ACE;
+}
+.sp-white.sp-selected:before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border: 1px solid #199ACE;
+  border-radius: 50%;
+  z-index: 1;
+}
+.sp-black.sp-selected:before {
+  display: none;
+}
+.sp-black.sp-selected:after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #199ACE;
+  border-radius: 50%;
+  top: -3px;
+  right: -3px;
+  z-index: 2;
+}
+.sp-white.sp-selected .selection-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #199ACE;
+  border-radius: 50%;
+  top: -1px;
+  right: -1px;
+  z-index: 2;
+}
+.sp-labels {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 5px;
+}
+.sp-label {
+  width: 35px;
+  font-size: 12px;
+  color: black;
+  text-align: center;
+}
+.sp-label-black {
+  margin-right: 20px;
+}
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(242, 34, 34, 0.6); }
+  50% { box-shadow: 0 0 15px rgba(242, 34, 34, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(242, 34, 34, 0.6); }
+}
+.add-to-cart-ajax.single_pack {
+  background: #F22222;
+  color: white;
+  border: none;
+  width: 100%;
+  height: auto;
+  border-radius: 30px;
+  font-family: "Retail Font", Arial, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  padding: 10px;
+  animation: glow 1.5s infinite;
+  cursor: pointer;
+  margin: 0 0 15px;
+  text-transform: none;
+}
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 10px;
+  vertical-align: text-bottom;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+
+<div class="sp-selector-container">
+  <div class="sp-choose-color">
+    <div class="sp-circles">
+      <div class="sp-circle sp-black sp-selected" id="sp_black"></div>
+      <div class="sp-circle sp-white" id="sp_white">
+        <div class="inner-circle"></div>
+        <div class="selection-dot"></div>
+      </div>
+    </div>
+    <div class="sp-labels">
+      <span class="sp-label sp-label-black">Black</span>
+      <span class="sp-label sp-label-white">White</span>
+    </div>
+  </div>
+</div>
+
+<div class="single-product-image-container" style="position: relative; margin-bottom: 15px; width: 100%; text-align: center;">
+  <img id="single_black" class="single_pack_img" src="https://respiray.com/wp-content/uploads/2023/01/product-black.jpg" alt="Single Product - Black" style="display:block; max-width:100%; height:auto;">
+  <img id="single_white" class="single_pack_img" src="https://respiray.com/wp-content/uploads/2023/01/product-white.jpg" alt="Single Product - White" style="display:none; max-width:100%; height:auto;">
+</div>
+
+<button id="single-pack-btn" class="add-to-cart-ajax single_pack">
+  <span class="status-text">Claim now</span>
+</button>
+
+
+
+
