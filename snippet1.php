@@ -498,3 +498,29 @@ add_action( 'wp_enqueue_scripts', function () {
         wp_dequeue_script( $h );
     }
 }, 30 );
+
+// -----------------------------------------------------------------------------
+// 14) Strip LinkedIn and Trustpilot scripts from the checkout output
+//
+// Some third‑party analytics snippets are injected directly into templates or
+// page builder widgets, bypassing WordPress’s enqueue system.  Because
+// LinkedIn Insight and Trustpilot widgets are not needed on the checkout
+// (and add significant DNS/TLS delays), we remove their `<script>` tags
+// entirely on `/checkouts/nf/`.  This output buffering filter runs just
+// before the template is rendered, searches the HTML for any script tags
+// referencing licdn.com, linkedin.com or trustpilot.com, and strips them
+// out.  It does not affect other pages.
+add_action( 'template_redirect', function () {
+    // Only apply on the custom checkout page
+    if ( false === strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' ) ) {
+        return;
+    }
+    ob_start( function ( $html ) {
+        // Remove LinkedIn Insight scripts
+        $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*licdn\.com[^>]*></script>#is', '', $html );
+        $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*linkedin\.com[^>]*></script>#is', '', $html );
+        // Remove Trustpilot scripts
+        $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*trustpilot\.com[^>]*></script>#is', '', $html );
+        return $html;
+    } );
+}, 0 );
