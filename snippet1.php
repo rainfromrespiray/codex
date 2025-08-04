@@ -521,6 +521,106 @@ add_action( 'template_redirect', function () {
         $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*linkedin\.com[^>]*></script>#is', '', $html );
         // Remove Trustpilot scripts
         $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*trustpilot\.com[^>]*></script>#is', '', $html );
+        // Also remove Hotjar, TikTok and Google Tag Manager scripts so we can reinsert them after load
+        $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*static\.hotjar\.com[^>]*></script>#is', '', $html );
+        $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*analytics\.tiktok\.com[^>]*></script>#is', '', $html );
+        $html = preg_replace( '#<script[^>]*src=["\']https?://[^"\']*googletagmanager\.com[^>]*></script>#is', '', $html );
         return $html;
     } );
+}, 0 );
+
+// After stripping these scripts, add them back on window load to keep analytics working without blocking the page.
+add_action( 'wp_footer', function () {
+    if ( false === strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' ) ) {
+        return;
+    }
+    ?>
+    <script>
+    window.addEventListener('load', function() {
+        // Hotjar tracking code
+        (function(h,o,t,j,a,r){
+            h.hj = h.hj || function(){ (h.hj.q = h.hj.q || []).push(arguments); };
+            h._hjSettings = { hjid:2356734, hjsv:6 };
+            a = o.getElementsByTagName('head')[0];
+            r = o.createElement('script'); r.async = 1;
+            r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+
+        // TikTok pixel
+        !function (w,d,t){
+            w.TiktokAnalyticsObject = t;
+            var ttq = w[t] = w[t] || [];
+            ttq.methods = ['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie'];
+            ttq.setAndDefer = function(obj, method){ obj[method] = function(){ obj.push([method].concat(Array.prototype.slice.call(arguments,0))); }; };
+            for(var i = 0; i < ttq.methods.length; i++){ ttq.setAndDefer(ttq, ttq.methods[i]); }
+            ttq.instance = function(name){ var inst = ttq._i[name] || []; for(var i = 0; i < ttq.methods.length; i++){ ttq.setAndDefer(inst, ttq.methods[i]); } return inst; };
+            ttq.load = function(id, opts){ var url = 'https://analytics.tiktok.com/i18n/pixel/events.js'; ttq._i = ttq._i || {}; ttq._i[id] = []; ttq._i[id]._u = url; ttq._t = ttq._t || {}; ttq._t[id] = +new Date; ttq._o = ttq._o || {}; ttq._o[id] = opts || {}; var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = url + '?sdkid=' + id + '&lib=' + t; var a = document.getElementsByTagName('script')[0]; a.parentNode.insertBefore(s, a); };
+            ttq.load('CGNJD7JC77U7F650IHJ0');
+            ttq.page();
+        }(window, document, 'ttq');
+
+        // Google Tag Manager
+        (function(w,d,s,l,i){
+            w[l] = w[l] || [];
+            w[l].push({ 'gtm.start': new Date().getTime(), event:'gtm.js' });
+            var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true;
+            j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-NXL2V8L');
+    });
+    </script>
+    <?php
+}, 1000 );
+
+// -----------------------------------------------------------------------------
+// 15) Disable heavy WPML filters on the checkout
+//
+// The WPML plugin remains active site‑wide but there is only one language.  Its
+// query and request filters still run on every page and execute dozens of
+// unnecessary database queries.  To reduce overhead on the custom checkout
+// without breaking other pages, we remove the most expensive WPML actions on
+// `/checkouts/nf/`.  This stops WPML from modifying the main query and
+// eliminates translation lookups.  If additional WPML filters need to be
+// removed, add them here in the same fashion.
+add_action( 'wp', function () {
+    if ( false === strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' ) ) {
+        return;
+    }
+    // Remove core WPML query handlers
+    if ( isset( $GLOBALS['sitepress'] ) && is_object( $GLOBALS['sitepress'] ) ) {
+        $sitepress = $GLOBALS['sitepress'];
+        remove_action( 'parse_query', array( $sitepress, 'parse_query' ), 10 );
+        remove_action( 'pre_get_posts', array( $sitepress, 'pre_get_posts' ), 10 );
+        // SitePress registers its set_wp_query callback on the 'wp' hook,
+        // not on a custom hook named set_wp_query.  Remove it here.
+        remove_action( 'wp', array( $sitepress, 'set_wp_query' ), 10 );
+        // Remove WPML URL filters that rewrite various links.  With a single language
+        // configured these filters are unnecessary and add query overhead.
+        if ( isset( $sitepress->url_filters ) && is_object( $sitepress->url_filters ) ) {
+            $url_filters = $sitepress->url_filters;
+            @remove_filter( 'home_url', array( $url_filters, 'home_url_filter' ), 10 );
+            @remove_filter( 'permalink', array( $url_filters, 'permalink_filter' ), 10 );
+            @remove_filter( 'page_link', array( $url_filters, 'page_link_filter' ), 10, 2 );
+            @remove_filter( 'post_type_link', array( $url_filters, 'post_type_link_filter' ), 10, 2 );
+            @remove_filter( 'post_link', array( $url_filters, 'post_link_filter' ), 10, 3 );
+            @remove_filter( 'term_link', array( $url_filters, 'term_link_filter' ), 10, 2 );
+            @remove_filter( 'endpoint_permalink', array( $url_filters, 'endpoint_permalink_filter' ), 10, 2 );
+        }
+    }
+    // Disable WPML Slug translation filter
+    if ( class_exists( 'WPML_Slug_Translation' ) ) {
+        global $wpml_slug_translation;
+        if ( is_object( $wpml_slug_translation ) ) {
+            remove_action( 'pre_get_posts', array( $wpml_slug_translation, 'filter_pre_get_posts' ), -1000 );
+        }
+    }
+
+    // Remove additional WPML slug translation filters related to links if available
+    if ( isset( $GLOBALS['wpml_slug_translation'] ) && is_object( $GLOBALS['wpml_slug_translation'] ) ) {
+        $st = $GLOBALS['wpml_slug_translation'];
+        @remove_filter( 'post_type_link', array( $st, 'post_type_link_filter' ), 10, 2 );
+        @remove_filter( 'post_link', array( $st, 'post_link_filter' ), 10, 3 );
+    }
 }, 0 );
