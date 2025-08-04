@@ -120,19 +120,27 @@ function html5blank_nav_new($location)
 // Load HTML5 Blank scripts (header.php)
 function html5blank_header_scripts()
 {
-    if ($GLOBALS['pagenow'] != 'wp-login.php' && !is_admin()) {
+    if ( $GLOBALS['pagenow'] != 'wp-login.php' && ! is_admin() ) {
+        // Determine if we are on the custom checkout
+        $is_checkout_nf = false !== strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' );
 
-    	wp_register_script('conditionizr', get_template_directory_uri() . '/js/lib/conditionizr-4.3.0.min.js', array(), '4.3.0'); // Conditionizr
-        wp_enqueue_script('conditionizr'); // Enqueue it!
+        // Only load these libraries when not on the custom checkout.  They are
+        // required for sliders and feature detection on most pages, but
+        // contribute unnecessary weight on the checkout page.
+        if ( ! $is_checkout_nf ) {
+            wp_register_script( 'conditionizr', get_template_directory_uri() . '/js/lib/conditionizr-4.3.0.min.js', array(), '4.3.0' ); // Conditionizr
+            wp_enqueue_script( 'conditionizr' ); // Enqueue it!
 
-        wp_register_script('modernizr', get_template_directory_uri() . '/js/lib/modernizr-2.7.1.min.js', array(), '2.7.1'); // Modernizr
-        wp_enqueue_script('modernizr'); // Enqueue it!
+            wp_register_script( 'modernizr', get_template_directory_uri() . '/js/lib/modernizr-2.7.1.min.js', array(), '2.7.1' ); // Modernizr
+            wp_enqueue_script( 'modernizr' ); // Enqueue it!
 
-        wp_register_script('html5blankscripts', get_template_directory_uri() . '/js/scripts.js', array('jquery'), '2.93'); // Custom scripts
-        wp_enqueue_script('html5blankscripts'); // Enqueue it!
+            wp_register_script( 'swiper', 'https://unpkg.com/swiper/swiper-bundle.min.js', array( 'jquery' ), '1.0.91' ); // Swiper
+            wp_enqueue_script( 'swiper' ); // Enqueue it!
+        }
 
-        wp_register_script('swiper', 'https://unpkg.com/swiper/swiper-bundle.min.js', array('jquery'), '1.0.91'); // Custom scripts
-        wp_enqueue_script('swiper'); // Enqueue it!
+        // html5blankscripts should always load
+        wp_register_script( 'html5blankscripts', get_template_directory_uri() . '/js/scripts.js', array( 'jquery' ), '2.93' ); // Custom scripts
+        wp_enqueue_script( 'html5blankscripts' ); // Enqueue it!
     }
 }
 
@@ -157,8 +165,14 @@ function html5blank_styles()
     wp_register_style('newcvi', get_template_directory_uri() . '/css/new.css', array(), '1.4611', 'all');
     wp_enqueue_style('newcvi'); // Enqueue it!
 
-    wp_register_style('swipercss', 'https://unpkg.com/swiper/swiper-bundle.min.css', array(), '1.198', 'all');
-    wp_enqueue_style('swipercss'); // Enqueue it!
+    // Only enqueue Swiper CSS when not on the custom checkout page.  Sliders are
+    // not present on `/checkouts/nf/` so we save a network request by
+    // conditionally excluding this stylesheet.
+    $is_checkout_nf_styles = false !== strpos( $_SERVER['REQUEST_URI'], '/checkouts/nf/' );
+    if ( ! $is_checkout_nf_styles ) {
+        wp_register_style( 'swipercss', 'https://unpkg.com/swiper/swiper-bundle.min.css', array(), '1.198', 'all' );
+        wp_enqueue_style( 'swipercss' ); // Enqueue it!
+    }
 }
 
 // Register HTML5 Blank Navigation
