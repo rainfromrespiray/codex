@@ -145,6 +145,18 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+/* FIXED: Hide all images by default - JS will show the correct one */
+.single_pack_img {
+  display: none;
+  max-width: 100%;
+  height: auto;
+}
+.single-product-image-container {
+  position: relative;
+  margin-bottom: 15px;
+  width: 100%;
+  text-align: center;
+}
 </style>
 
 <div class="sp-selector-container">
@@ -163,15 +175,12 @@
   </div>
 </div>
 
-<div class="single-product-image-container" style="position: relative; margin-bottom: 15px; width: 100%; text-align: center;">
-  <img id="single_black" class="single_pack_img" src="https://respiray.com/wp-content/uploads/2023/01/product-black.jpg" alt="Single Product - Black" style="display:block; max-width:100%; height:auto;">
-  <img id="single_white" class="single_pack_img" src="https://respiray.com/wp-content/uploads/2023/01/product-white.jpg" alt="Single Product - White" style="display:none; max-width:100%; height:auto;">
+<!-- FIXED: Removed inline display styles - let CSS and JS handle visibility -->
+<div class="single-product-image-container">
+  <img id="single_black" class="single_pack_img" src="https://respiray.com/wp-content/uploads/2025/04/NF1x_626x297_big.webp" alt="Single Product - Black">
+  <img id="single_white" class="single_pack_img" src="https://respiray.com/wp-content/uploads/2025/05/NF1x_W_626x297_big.webp" alt="Single Product - White">
 </div>
 
 <button id="single-pack-btn" class="add-to-cart-ajax single_pack">
   <span class="status-text">Claim now</span>
 </button>
-
-
-
-
